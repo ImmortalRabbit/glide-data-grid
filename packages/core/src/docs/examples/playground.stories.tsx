@@ -28,6 +28,63 @@ export default {
             </SimpleThemeWrapper>
         ),
     ],
+    parameters: {
+        docs: {
+            source: {
+                code: `import React from "react";
+import { DataEditorAll as DataEditor } from "@glideapps/glide-data-grid";
+import "@glideapps/glide-data-grid/dist/index.css";
+
+// Sample data generator
+const generateColumns = (count) => {
+    return Array.from({ length: count }, (_, i) => ({
+        title: \`Column \${i + 1}\`,
+        id: \`column-\${i + 1}\`,
+        width: 120,
+    }));
+};
+
+const getCellContent = ([col, row]) => {
+    return {
+        kind: "text", // or "number", "boolean", "image", etc.
+        data: \`Cell \${col},\${row}\`,
+        displayData: \`Cell \${col},\${row}\`,
+        allowOverlay: true,
+    };
+};
+
+function MyDataGrid() {
+    const [selection, setSelection] = React.useState({
+        columns: { items: [] },
+        rows: { items: [] },
+        current: undefined,
+    });
+
+    const columns = generateColumns(10);
+
+    return (
+        <DataEditor
+            columns={columns}
+            rows={1000}
+            getCellContent={getCellContent}
+            width="100%"
+            height="400px"
+            smoothScrollX={true}
+            smoothScrollY={true}
+            rowMarkers="number"
+            gridSelection={selection}
+            onGridSelectionChange={setSelection}
+            getCellsForSelection={true}
+        />
+    );
+}
+
+export default MyDataGrid;`,
+                language: "tsx",
+                type: "code",
+            },
+        },
+    },
 };
 
 interface PlaygroundProps {
@@ -152,6 +209,62 @@ interface PlaygroundProps {
     freezeRows: number;
 }
 
+// Utility function to generate copy-paste ready code
+const generateCodeSnippet = (props: PlaygroundProps) => {
+    const nonDefaultProps = [];
+    
+    // Add non-default props to the code snippet
+    if (props.rows !== 1000) nonDefaultProps.push(`rows={${props.rows}}`);
+    if (props.width !== "100%") nonDefaultProps.push(`width="${props.width}"`);
+    if (props.height !== "100%") nonDefaultProps.push(`height="${props.height}"`);
+    if (props.rowMarkers !== "number") nonDefaultProps.push(`rowMarkers="${props.rowMarkers}"`);
+    if (props.headerHeight !== 36) nonDefaultProps.push(`headerHeight={${props.headerHeight}}`);
+    if (props.rowHeight !== 34) nonDefaultProps.push(`rowHeight={${props.rowHeight}}`);
+    if (props.freezeColumns !== 0) nonDefaultProps.push(`freezeColumns={${props.freezeColumns}}`);
+    if (!props.smoothScrollX) nonDefaultProps.push(`smoothScrollX={false}`);
+    if (!props.smoothScrollY) nonDefaultProps.push(`smoothScrollY={false}`);
+    if (props.preventDiagonalScrolling) nonDefaultProps.push(`preventDiagonalScrolling={true}`);
+    if (!props.editOnType) nonDefaultProps.push(`editOnType={false}`);
+    if (!props.fillHandle) nonDefaultProps.push(`fillHandle={false}`);
+    if (props.showSearch) nonDefaultProps.push(`showSearch={true}`);
+    
+    return `import React from "react";
+import { DataEditorAll as DataEditor } from "@glideapps/glide-data-grid";
+import "@glideapps/glide-data-grid/dist/index.css";
+
+const columns = Array.from({ length: ${props.columnsCount} }, (_, i) => ({
+    title: \`Column \${i + 1}\`,
+    id: \`column-\${i + 1}\`,
+    width: 120,
+}));
+
+const getCellContent = ([col, row]) => ({
+    kind: "text",
+    data: \`Cell \${col},\${row}\`,
+    displayData: \`Cell \${col},\${row}\`,
+    allowOverlay: true,
+});
+
+function MyDataGrid() {
+    const [selection, setSelection] = React.useState({
+        columns: { items: [] },
+        rows: { items: [] },
+        current: undefined,
+    });
+
+    return (
+        <DataEditor
+            columns={columns}
+            getCellContent={getCellContent}
+            gridSelection={selection}
+            onGridSelectionChange={setSelection}
+            getCellsForSelection={true}
+            ${nonDefaultProps.join('\n            ')}
+        />
+    );
+}`;
+};
+
 export const Playground: React.FC<PlaygroundProps> = p => {
     const { cols, getCellContent } = useMockDataGenerator(p.columnsCount);
     
@@ -198,9 +311,26 @@ export const Playground: React.FC<PlaygroundProps> = p => {
         borderColor: p.borderColor,
     };
 
+    // Log the current code snippet for easy copying
+    React.useEffect(() => {
+        const codeSnippet = generateCodeSnippet(p);
+        console.log("📋 Copy this code to use the current configuration:");
+        console.log(codeSnippet);
+    }, [p]);
+
     return (
-        <DataEditor
-            {...defaultProps}
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            <div style={{ 
+                padding: "8px 12px", 
+                background: "#f5f5f5", 
+                borderBottom: "1px solid #ddd",
+                fontSize: "12px",
+                fontFamily: "monospace"
+            }}>
+                💡 Check the browser console for copy-paste ready code with your current settings
+            </div>
+            <DataEditor
+                {...defaultProps}
             // Basic Configuration
             columns={cols}
             rows={p.rows}
@@ -317,7 +447,8 @@ export const Playground: React.FC<PlaygroundProps> = p => {
                 console.log("Row moved:", startIndex, "to", endIndex);
             } : undefined}
             rightElement={p.showRightElement ? <div style={{ padding: 8, background: "#f0f0f0", fontSize: 12 }}>Right Element</div> : undefined}
-        />
+            />
+        </div>
     );
 };
 

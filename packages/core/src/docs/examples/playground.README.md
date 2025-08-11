@@ -123,6 +123,21 @@ Control which keyboard shortcuts are enabled:
 3. **Check console**: Event handlers log to the browser console
 4. **Performance testing**: Try large datasets (high row/column counts)
 5. **Theme customization**: Use color controls to create custom themes
+6. **Copy working code**: The console shows copy-paste ready code with your current settings
+
+## Getting Copy-Paste Ready Code
+
+Unlike the default Storybook code view which shows unusable `React.ForwardRef` syntax, this playground generates **proper, usable code** that you can copy and paste directly into your project:
+
+1. Configure the grid using the controls panel
+2. Open your browser's developer console (F12)
+3. Look for the "📋 Copy this code..." message
+4. Copy the generated code that includes:
+   - Proper imports
+   - Column definitions
+   - Data generation functions
+   - Complete component setup
+   - Only the props you've actually changed from defaults
 
 ## Event Logging
 
