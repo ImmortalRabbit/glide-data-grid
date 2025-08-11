@@ -30,6 +30,10 @@
         "lint": "concurrently \"npm run cycle-check\" \"eslint src --ext .ts,.tsx\"",
         "cycle-check": "ts-helper -p ./tsconfig.json -r ./src/index.ts -c",
         "test": "vitest",
+        "test:perf": "vitest run test/performance/performance.test.ts",
+        "test:perf-quick": "vitest run test/performance/performance.test.ts --reporter=verbose --config.test.timeout=60000",
+        "test:perf-comprehensive": "vitest run test/performance/performance.test.ts --reporter=verbose --config.test.timeout=600000",
+        "bench": "vitest bench",
         "check-package": "package-check",
         "watch": "chokidar 'src/**/*.ts*' -c './build.sh'"
     },

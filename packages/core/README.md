@@ -188,3 +188,92 @@ export default function Grid() {
     return <DataEditor {...args} />;
 }
 ```
+
+## Performance Testing
+
+This package includes a comprehensive performance testing framework to track and prevent performance regressions.
+
+### Running Performance Tests
+
+```bash
+# Quick performance test (CI-friendly)
+npm run test:perf-quick
+
+# Standard performance test
+npm run test:perf
+
+# Comprehensive performance test (takes longer)
+npm run test:perf-comprehensive
+
+# Run only specific performance checks
+npm run test:perf -- --grep "Render Performance"
+```
+
+### Using the CI Performance Script
+
+```bash
+# Run in quick mode (for CI)
+./test/performance/ci-performance.sh quick
+
+# Run in standard mode
+./test/performance/ci-performance.sh standard
+
+# Run comprehensive benchmarks
+./test/performance/ci-performance.sh comprehensive
+
+# Only check for regressions
+./test/performance/ci-performance.sh check-only
+```
+
+### Performance Metrics Tracked
+
+- **Initial Render Time**: Time to render the grid with different dataset sizes
+- **Scrolling Performance**: Average time per scroll event
+- **Canvas Drawing**: Time to draw cells on canvas
+- **Memory Usage**: JavaScript heap usage during operations
+- **Cell Selection**: Time to select cells
+- **Virtual Scrolling**: Efficiency of virtual scrolling implementation
+
+### Performance Thresholds
+
+The system enforces these performance thresholds:
+
+| Metric | Small Dataset | Medium Dataset | Large Dataset |
+|--------|---------------|----------------|---------------|
+| Initial Render | <50ms | <200ms | <1000ms |
+| Scroll Performance | <5ms/event | <10ms/event | <20ms/event |
+| Canvas Drawing | <10ms | <50ms | <200ms |
+| Memory Usage | <5MB | <20MB | <100MB |
+
+### Baseline and Regression Testing
+
+The first time you run performance tests, it creates a baseline. Subsequent runs compare against this baseline:
+
+- **✅ Improved**: Performance is >5% better
+- **⚪ Stable**: Performance is within ±5%
+- **❌ Regressed**: Performance is >5% worse
+
+CI will fail if performance regresses by more than 20%.
+
+### Viewing Results
+
+Performance results are saved to `test-results/performance/`:
+
+- `baseline.json` - Initial performance baseline
+- `results-TIMESTAMP.json` - Individual test run results
+- `latest-comparison.json` - Comparison with baseline
+- `badge.json` - Performance badge data
+
+### Adding Custom Benchmarks
+
+```typescript
+import { DataGridBenchmarks } from './test/performance/data-grid-benchmarks.js';
+
+const benchmarks = new DataGridBenchmarks();
+
+// Add your custom benchmark
+const customBenchmark = async () => {
+    const result = await benchmarks.benchmarkInitialRender(5000, 30);
+    console.log(`Custom benchmark: ${result.renderTime}ms`);
+};
+```
