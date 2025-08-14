@@ -1,0 +1,53 @@
+{
+  "name": "@glideapps/glide-data-grid-adapter-vue",
+  "version": "0.1.0",
+  "description": "Vue.js adapter for glide-data-grid",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/dts/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/dts/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json", 
+    "build:types": "tsc -p tsconfig.types.json",
+    "dev": "tsc -p tsconfig.esm.json --watch",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.vue"
+  },
+  "dependencies": {
+    "@glideapps/glide-data-grid-adapter-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0",
+    "react": "^16.12.0 || 17.x || 18.x || 19.x",
+    "react-dom": "^16.12.0 || 17.x || 18.x || 19.x"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.112",
+    "@vue/compiler-sfc": "^3.5.13",
+    "typescript": "^5.8.3",
+    "vitest": "^0.34.6",
+    "vue": "^3.5.13"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glideapps/glide-data-grid.git",
+    "directory": "packages/adapter-vue"
+  },
+  "keywords": [
+    "vue",
+    "data-grid",
+    "adapter",
+    "glide-data-grid"
+  ],
+  "author": "Glide",
+  "license": "MIT"
+}
