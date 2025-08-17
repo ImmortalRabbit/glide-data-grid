@@ -1,27 +1,17 @@
-import React from "react";
-import {
-    DataEditor,
-    GridCell,
-    GridCellKind,
-    GridColumn,
-    Item,
-} from "@glideapps/glide-data-grid";
-import { useCollapsingGroups } from "../use-collapsing-groups.js";
+import * as React from "react";
+
+import { type GridCell, GridCellKind, type GridColumn, type Item } from "../internal/data-grid/data-grid-types.js";
+import { DataEditorAll as DataEditor } from "../data-editor-all.js";
+import { SimpleThemeWrapper } from "../stories/story-utils.js";
+import { DocWrapper, Highlight, Marked, Wrapper } from "./doc-wrapper.js";
 
 export default {
-    title: "Glide-Data-Grid/DataEditor Demos",
+    title: "Glide-Data-Grid/Docs",
     decorators: [
         (Story: React.ComponentType) => (
-            <div
-                style={{
-                    outerWidth: 1000,
-                    width: 1000,
-                    height: 600,
-                    padding: 20,
-                }}
-            >
+            <SimpleThemeWrapper>
                 <Story />
-            </div>
+            </SimpleThemeWrapper>
         ),
     ],
 };
@@ -35,7 +25,12 @@ function getDummyData(col: number, row: number): GridCell {
     };
 }
 
-export const MultiLevelGrouping: React.VFC = () => {
+export const MultiLevelColumnGrouping: React.VFC = () => {
+    const getCellContent = React.useCallback((cell: Item): GridCell => {
+        const [col, row] = cell;
+        return getDummyData(col, row);
+    }, []);
+
     const columns: GridColumn[] = React.useMemo(
         () => [
             {
@@ -89,61 +84,54 @@ export const MultiLevelGrouping: React.VFC = () => {
         []
     );
 
-    const getCellContent = React.useCallback((cell: Item): GridCell => {
-        const [col, row] = cell;
-        return getDummyData(col, row);
-    }, []);
-
-    const groupingProps = useCollapsingGroups({
-        columns,
-        theme: {
-            accentColor: "#8c96ff",
-            accentLight: "rgba(202, 206, 255, 0.253)",
-            
-            textDark: "#313139",
-            textMedium: "#737383",
-            textLight: "#b2b2c0",
-            textBubble: "#313139",
-
-            bgIconHeader: "#737383",
-            fgIconHeader: "#000000",
-            textHeader: "#313139",
-            textGroupHeader: "#313139FF",
-            bgCell: "#ffffff",
-            bgCellMedium: "#fafafb",
-            bgHeader: "#f7f7f8",
-            bgHeaderHasFocus: "#e9e9ea",
-            bgHeaderHovered: "#efeff1",
-
-            bgBubble: "#ededf3",
-            bgBubbleSelected: "#ffffff",
-
-            bgSearchResult: "#fff9e6",
-
-            borderColor: "rgba(115, 116, 131, 0.16)",
-            drilldownBorder: "rgba(0, 0, 0, 0)",
-
-            linkColor: "#4F5DFF",
-
-            headerFontStyle: "600 13px",
-            baseFontStyle: "13px",
-            fontFamily:
-                "Inter, Roboto, -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Ubuntu, noto, arial, sans-serif",
-        },
-    });
-
     return (
-        <DataEditor
-            {...groupingProps}
+        <DocWrapper>
+            <Marked>
+                {`
+# Multi Level Column Grouping
+
+Columns can be grouped by assinging them a group. Easy peasy.`}
+            </Marked>
+            <Highlight>
+                {`
+const columns = React.useMemo<GridColumn[]>(() => {
+    return [
+        {
+            title: "Name",
+            id: "name",
+            group: "Core",
+        },
+        {
+            title: "Company",
+            id: "company",
+            group: "Core",
+        },
+        {
+            title: "Email",
+            id: "email",
+            group: "Extra",
+        },
+        {
+            title: "Phone",
+            id: "phone",
+            group: "Extra",
+        },
+    ];
+}, []);
+`}
+            </Highlight>
+            <Wrapper height={500}>
+                {/* <DataEditor getCellContent={getCellContent} columns={columns} rows={data.length} /> */}
+                        <DataEditor
+                        columns={columns}
             getCellContent={getCellContent}
             rows={10}
             smoothScrollX={true}
             smoothScrollY={true}
             groupHeaderHeight={36}
         />
+            </Wrapper>
+        </DocWrapper>
     );
 };
-
-MultiLevelGrouping.story = {
-    name: "Multi-Level Column Grouping",
-};
+(MultiLevelColumnGrouping as any).storyName = "10. Multi Level Column Grouping";

@@ -28,6 +28,7 @@ export function useMappedColumns(
             columns.map(
                 (c, i): MappedGridColumn => ({
                     group: c.group,
+                    groupPath: [],
                     grow: c.grow,
                     hasMenu: c.hasMenu,
                     icon: c.icon,
@@ -76,17 +77,17 @@ function getColumnGroupKey(column: { group?: string; groupPath?: readonly string
 }
 
 export function isGroupEqual(left: string | undefined, right: string | undefined): boolean;
-export function isGroupEqual(left: { group?: string; groupPath?: readonly string[] } | undefined, right: { group?: string; groupPath?: readonly string[] } | undefined): boolean;
-export function isGroupEqual(left: any, right: any): boolean {
-    if (typeof left === "string" || left === undefined) {
+export function isGroupEqual(left: { group?: string; groupPath?: string[] } | undefined, right: { group?: string; groupPath?: string[] } | undefined): boolean;
+export function isGroupEqual(left: { group?: string; groupPath?: string[] } | string | undefined, right: { group?: string; groupPath?: string[] } | string | undefined): boolean {
+    if (typeof left === "string" || typeof right === "string" || left === undefined || right === undefined) {
         // Backward compatibility: handle string group names
         return (left ?? "") === (right ?? "");
+    } else {
+        // Handle column objects with groupPath
+        const leftKey = getColumnGroupKey(left);
+        const rightKey = getColumnGroupKey(right);
+        return leftKey === rightKey;
     }
-    
-    // Handle column objects with groupPath
-    const leftKey = left ? getColumnGroupKey(left) : "";
-    const rightKey = right ? getColumnGroupKey(right) : "";
-    return leftKey === rightKey;
 }
 
 export function cellIsSelected(location: Item, cell: InnerGridCell, selection: GridSelection): boolean {
@@ -825,7 +826,7 @@ export function computeBounds(
         result.height = groupHeaderHeight;
 
         let start = col;
-        const group = mappedColumns[col].group;
+        // const group = mappedColumns[col].group;
         const sticky = mappedColumns[col].sticky;
         while (
             start > 0 &&

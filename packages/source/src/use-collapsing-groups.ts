@@ -2,28 +2,31 @@ import type { GridSelection, DataEditorProps, Theme } from "@glideapps/glide-dat
 import React from "react";
 
 // Utility functions for groupPath handling
-function getGroupKey(column: { group?: string; groupPath?: readonly string[] }): string {
+function getGroupKey(column: { group?: string; groupPath?: string[] }): string {
     if (column.groupPath && column.groupPath.length > 0) {
         return column.groupPath.join('|');
     }
     return column.group ?? "";
 }
 
-function getGroupLevel(column: { group?: string; groupPath?: readonly string[] }): number {
+function getGroupLevel(column: { group?: string; groupPath?: string[] }): number {
     if (column.groupPath && column.groupPath.length > 0) {
         return column.groupPath.length;
     }
-    return column.group ? 1 : 0;
+    if (column.group !== null && column.group !== undefined && column.group.length > 0) {
+        return 1;
+    }
+    return 0;
 }
 
-function getGroupPathAtLevel(column: { group?: string; groupPath?: readonly string[] }, level: number): string {
+function getGroupPathAtLevel(column: { group?: string; groupPath?: string[] }, level: number): string {
     if (column.groupPath && column.groupPath.length > 0) {
         return column.groupPath.slice(0, level).join('|');
     }
     return level === 1 ? (column.group ?? "") : "";
 }
 
-function isGroupCollapsedAtLevel(collapsed: readonly string[], column: { group?: string; groupPath?: readonly string[] }, level: number): boolean {
+function isGroupCollapsedAtLevel(collapsed: string[], column: { group?: string; groupPath?: string[] }, level: number): boolean {
     const groupKey = getGroupPathAtLevel(column, level);
     return groupKey !== "" && collapsed.includes(groupKey);
 }
@@ -39,7 +42,7 @@ type Result = Pick<
 >;
 
 export function useCollapsingGroups(props: Props): Result {
-    const [collapsed, setCollapsed] = React.useState<readonly string[]>([]);
+    const [collapsed, setCollapsed] = React.useState<string[]>([]);
     const [gridSelectionInner, setGridSelectionsInner] = React.useState<GridSelection | undefined>(undefined);
 
     const {
@@ -118,7 +121,7 @@ export function useCollapsingGroups(props: Props): Result {
             onGroupHeaderClickedIn?.(index, a);
 
             const column = columns[index];
-            if (!column) return;
+            // if (!column) return;
             
             const groupKey = getGroupKey(column);
             if (groupKey === "") return;
@@ -134,22 +137,22 @@ export function useCollapsingGroups(props: Props): Result {
             if (s.current !== undefined) {
                 const col = s.current.cell[0];
                 const column = columns[col];
-                if (column) {
-                    const groupKey = getGroupKey(column);
-                    const maxLevel = getGroupLevel(column);
-                    
-                    setCollapsed(cv => {
-                        // Remove any collapsed group that contains this column
-                        let newCollapsed = cv;
-                        for (let level = 1; level <= maxLevel; level++) {
-                            const levelGroupKey = getGroupPathAtLevel(column, level);
-                            if (levelGroupKey !== "" && cv.includes(levelGroupKey)) {
-                                newCollapsed = newCollapsed.filter(g => g !== levelGroupKey);
-                            }
+                // if (column) {
+                    // const groupKey = getGroupKey(column);
+                const maxLevel = getGroupLevel(column);
+                
+                setCollapsed(cv => {
+                    // Remove any collapsed group that contains this column
+                    let newCollapsed = cv;
+                    for (let level = 1; level <= maxLevel; level++) {
+                        const levelGroupKey = getGroupPathAtLevel(column, level);
+                        if (levelGroupKey !== "" && cv.includes(levelGroupKey)) {
+                            newCollapsed = newCollapsed.filter(g => g !== levelGroupKey);
                         }
-                        return newCollapsed;
-                    });
-                }
+                    }
+                    return newCollapsed;
+                });
+                // }
             }
             if (onGridSelectionChangeIn !== undefined) {
                 onGridSelectionChangeIn(s);
@@ -166,7 +169,7 @@ export function useCollapsingGroups(props: Props): Result {
 
             // For backward compatibility, check both the original group string and as a group key
             const isCollapsed = collapsed.includes(group ?? "") || 
-                               (group && collapsed.some(c => c.endsWith('|' + group) || c === group));
+                               collapsed.some(c => c.endsWith('|' + group) || c === group);
 
             return {
                 ...result,
