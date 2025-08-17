@@ -202,8 +202,16 @@ export function drawGroups(
             if (group !== undefined) {
                 let drawX = x;
                 if (group.icon !== undefined) {
-                    const variant: SpriteVariant = group.overrideTheme?.textGroupHeader !== undefined ? "normal" : "header";
-                    drawX += spriteManager.drawSprite(group.icon, variant, ctx, drawX + xPad, y, h, theme) + xPad;
+                    spriteManager.drawSprite(
+                        group.icon,
+                        "normal",
+                        ctx,
+                        drawX + xPad,
+                        y + (h - 20) / 2,
+                        20,
+                        groupTheme
+                    );
+                    drawX += 26;
                 }
 
                 ctx.fillText(group.name, drawX + xPad, y + h / 2 + getMiddleCenterBias(ctx, theme));
@@ -300,8 +308,16 @@ export function drawGroups(
             if (group !== undefined) {
                 let drawX = x;
                 if (group.icon !== undefined) {
-                    const variant: SpriteVariant = group.overrideTheme?.textGroupHeader !== undefined ? "normal" : "header";
-                    drawX += spriteManager.drawSprite(group.icon, variant, ctx, drawX + xPad, y, h, theme) + xPad;
+                    spriteManager.drawSprite(
+                        group.icon,
+                        "normal",
+                        ctx,
+                        drawX + xPad,
+                        y + (h - 20) / 2,
+                        20,
+                        groupTheme
+                    );
+                    drawX += 26;
                 }
 
                 ctx.fillText(group.name, drawX + xPad, y + h / 2 + getMiddleCenterBias(ctx, theme));

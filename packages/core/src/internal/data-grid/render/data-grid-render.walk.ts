@@ -3,7 +3,6 @@ import {
     type MappedGridColumn, 
     isGroupEqual, 
     getEffectiveGroupPath, 
-    isGroupPathEqual, 
     getMaxGroupDepth,
     areGroupPathsEqualUpToLevel 
 } from "./data-grid-lib.js";
