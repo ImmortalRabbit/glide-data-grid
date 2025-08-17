@@ -148,6 +148,13 @@ export type Item = readonly [col: number, row: number];
 export interface BaseGridColumn {
     readonly title: string;
     readonly group?: string;
+    /** 
+     * Multi-level group path for hierarchical column grouping.
+     * When provided, takes precedence over the group property.
+     * Example: ["Sales", "Q1", "Products"] creates a 3-level hierarchy.
+     * @group Grouping
+     */
+    readonly groupPath?: readonly string[];
     readonly icon?: GridColumnIcon | string;
     readonly overlayIcon?: GridColumnIcon | string;
     readonly menuIcon?: GridColumnMenuIcon | string;

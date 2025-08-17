@@ -2,11 +2,11 @@
 /* eslint-disable unicorn/no-for-loop */
 import { type Rectangle } from "../data-grid-types.js";
 import { CellSet } from "../cell-set.js";
-import { getEffectiveColumns, type MappedGridColumn, rectBottomRight } from "./data-grid-lib.js";
+import { getEffectiveColumns, type MappedGridColumn, rectBottomRight, hasMultiLevelGroups } from "./data-grid-lib.js";
 import { blend } from "../color-parser.js";
 import { assert } from "../../../common/support.js";
 import type { DrawGridArg } from "./draw-grid-arg.js";
-import { walkColumns, walkGroups, walkRowsInCol } from "./data-grid-render.walk.js";
+import { walkColumns, walkGroups, walkRowsInCol, walkMultiLevelGroups } from "./data-grid-render.walk.js";
 import { drawCells } from "./data-grid-render.cells.js";
 import { drawGridHeaders } from "./data-grid-render.header.js";
 import { drawGridLines, overdrawStickyBoundaries, drawBlanks, drawExtraRowThemes } from "./data-grid-render.lines.js";
@@ -24,7 +24,7 @@ import { drawHighlightRings, drawFillHandle, drawColumnResizeOutline } from "./d
 //   structure which contains all operations to perform, then sort them all by "prep" requirement, then do
 //   all like operations at once.
 
-function clipHeaderDamage(
+function clipDamage(
     ctx: CanvasRenderingContext2D,
     effectiveColumns: readonly MappedGridColumn[],
     width: number,
@@ -39,17 +39,32 @@ function clipHeaderDamage(
 
     ctx.beginPath();
 
-    walkGroups(effectiveColumns, width, translateX, groupHeaderHeight, (span, _group, x, y, w, h) => {
-        const hasItemInSpan = damage.hasItemInRectangle({
-            x: span[0],
-            y: -2,
-            width: span[1] - span[0] + 1,
-            height: 1,
+    // Handle group header damage - use multi-level if available
+    if (hasMultiLevelGroups(effectiveColumns)) {
+        walkMultiLevelGroups(effectiveColumns, width, translateX, groupHeaderHeight, (span, _group, level, x, y, w, h) => {
+            const hasItemInSpan = damage.hasItemInRectangle({
+                x: span[0],
+                y: -2 - level,
+                width: span[1] - span[0] + 1,
+                height: 1,
+            });
+            if (hasItemInSpan) {
+                ctx.rect(x, y, w, h);
+            }
         });
-        if (hasItemInSpan) {
-            ctx.rect(x, y, w, h);
-        }
-    });
+    } else {
+        walkGroups(effectiveColumns, width, translateX, groupHeaderHeight, (span, _group, x, y, w, h) => {
+            const hasItemInSpan = damage.hasItemInRectangle({
+                x: span[0],
+                y: -2,
+                width: span[1] - span[0] + 1,
+                height: 1,
+            });
+            if (hasItemInSpan) {
+                ctx.rect(x, y, w, h);
+            }
+        });
+    }
 
     walkColumns(
         effectiveColumns,
@@ -482,7 +497,7 @@ export function drawGrid(arg: DrawGridArg, lastArg: DrawGridArg | undefined) {
 
             const doHeaders = damage.hasHeader();
             if (doHeaders) {
-                clipHeaderDamage(
+                clipDamage(
                     overlayCtx,
                     effectiveCols,
                     width,

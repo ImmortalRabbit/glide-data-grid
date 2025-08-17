@@ -1,5 +1,12 @@
 import { type Item, type Rectangle } from "../data-grid-types.js";
-import { type MappedGridColumn, isGroupEqual } from "./data-grid-lib.js";
+import { 
+    type MappedGridColumn, 
+    isGroupEqual, 
+    getEffectiveGroupPath, 
+    isGroupPathEqual, 
+    getMaxGroupDepth,
+    areGroupPathsEqualUpToLevel 
+} from "./data-grid-lib.js";
 
 export function getSkipPoint(drawRegions: readonly Rectangle[]): number | undefined {
     if (drawRegions.length === 0) return undefined;
@@ -197,4 +204,92 @@ export function getSpanBounds(
     }
 
     return [frozenRect, contentRect];
+}
+
+export type WalkMultiLevelGroupsCallback = (
+    colSpan: Item,
+    groupName: string,
+    level: number,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+) => void;
+
+/**
+ * Walks through multi-level column groups, calling the callback for each group header at each level.
+ */
+export function walkMultiLevelGroups(
+    effectiveCols: readonly MappedGridColumn[],
+    width: number,
+    translateX: number,
+    groupHeaderHeight: number,
+    cb: WalkMultiLevelGroupsCallback
+): void {
+    if (effectiveCols.length === 0) return;
+
+    const maxDepth = getMaxGroupDepth(effectiveCols);
+    if (maxDepth === 0) return;
+
+    const headerHeightPerLevel = groupHeaderHeight / maxDepth;
+
+    // Process each level from top to bottom
+    for (let level = 0; level < maxDepth; level++) {
+        let x = 0;
+        let clipX = 0;
+        
+        for (let index = 0; index < effectiveCols.length; index++) {
+            const startCol = effectiveCols[index];
+            const startPath = getEffectiveGroupPath(startCol);
+
+            // Skip if this column doesn't have a group at this level
+            if (startPath.length <= level) {
+                x += startCol.width;
+                if (startCol.sticky) {
+                    clipX += startCol.width;
+                }
+                continue;
+            }
+
+            let end = index + 1;
+            let boxWidth = startCol.width;
+            if (startCol.sticky) {
+                clipX += boxWidth;
+            }
+
+            // Find all consecutive columns that belong to the same group path up to this level
+            while (
+                end < effectiveCols.length &&
+                areGroupPathsEqualUpToLevel(getEffectiveGroupPath(effectiveCols[end]), startPath, level) &&
+                effectiveCols[end].sticky === effectiveCols[index].sticky
+            ) {
+                const endCol = effectiveCols[end];
+                boxWidth += endCol.width;
+                end++;
+                index++;
+                if (endCol.sticky) {
+                    clipX += endCol.width;
+                }
+            }
+
+            const t = startCol.sticky ? 0 : translateX;
+            const localX = x + t;
+            const delta = startCol.sticky ? 0 : Math.max(0, clipX - localX);
+            const w = Math.min(boxWidth - delta, width - (localX + delta));
+
+            if (w > 0) {
+                cb(
+                    [startCol.sourceIndex, effectiveCols[end - 1].sourceIndex],
+                    startPath[level] || "",
+                    level,
+                    localX + delta,
+                    level * headerHeightPerLevel,
+                    w,
+                    headerHeightPerLevel
+                );
+            }
+
+            x += boxWidth;
+        }
+    }
 }
