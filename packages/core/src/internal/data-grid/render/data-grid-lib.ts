@@ -88,30 +88,6 @@ export function getEffectiveGroupPath(column: MappedGridColumn): readonly string
 }
 
 /**
- * Checks if two group paths are equal at a specific level.
- */
-export function isGroupPathEqual(
-    left: readonly string[] | undefined,
-    right: readonly string[] | undefined,
-    level: number
-): boolean {
-    const leftPath = left ?? [];
-    const rightPath = right ?? [];
-    
-    // If both paths don't have enough levels, they're equal at this level
-    if (leftPath.length <= level && rightPath.length <= level) {
-        return true;
-    }
-    
-    // If one has the level and the other doesn't, they're not equal
-    if (leftPath.length <= level || rightPath.length <= level) {
-        return false;
-    }
-    
-    return leftPath[level] === rightPath[level];
-}
-
-/**
  * Gets the maximum group depth across all columns.
  */
 export function getMaxGroupDepth(columns: readonly MappedGridColumn[]): number {
