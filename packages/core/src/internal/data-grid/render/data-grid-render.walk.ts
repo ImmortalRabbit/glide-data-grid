@@ -114,7 +114,7 @@ export function walkGroups(
         }
         while (
             end < effectiveCols.length &&
-            isGroupEqual(effectiveCols[end].group, startCol.group) &&
+            isGroupEqual(effectiveCols[end], startCol) &&
             effectiveCols[end].sticky === effectiveCols[index].sticky
         ) {
             const endCol = effectiveCols[end];
@@ -130,9 +130,12 @@ export function walkGroups(
         const localX = x + t;
         const delta = startCol.sticky ? 0 : Math.max(0, clipX - localX);
         const w = Math.min(boxWidth - delta, width - (localX + delta));
+        const groupName = startCol.groupPath && startCol.groupPath.length > 0 
+            ? startCol.groupPath[startCol.groupPath.length - 1] 
+            : (startCol.group ?? "");
         cb(
             [startCol.sourceIndex, effectiveCols[end - 1].sourceIndex],
-            startCol.group ?? "",
+            groupName,
             localX + delta,
             0,
             w,

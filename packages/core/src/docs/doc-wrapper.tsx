@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type ReactNode } from "react";
 import { styled } from "@linaria/react";
 import { marked } from "marked";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -502,7 +502,7 @@ export const MoreInfo = styled.p`
     }
 `;
 
-export const DocWrapper: React.FC = p => {
+export const DocWrapper: React.FC<{ children: ReactNode }> = p => {
     const { children } = p;
     return (
         <BeautifulStyle>

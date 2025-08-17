@@ -1,6 +1,36 @@
 import type { GridSelection, DataEditorProps, Theme } from "@glideapps/glide-data-grid";
 import React from "react";
 
+// Utility functions for groupPath handling
+function getGroupKey(column: { group?: string; groupPath?: string[] }): string {
+    if (column.groupPath && column.groupPath.length > 0) {
+        return column.groupPath.join('|');
+    }
+    return column.group ?? "";
+}
+
+function getGroupLevel(column: { group?: string; groupPath?: string[] }): number {
+    if (column.groupPath && column.groupPath.length > 0) {
+        return column.groupPath.length;
+    }
+    if (column.group !== null && column.group !== undefined && column.group.length > 0) {
+        return 1;
+    }
+    return 0;
+}
+
+function getGroupPathAtLevel(column: { group?: string; groupPath?: string[] }, level: number): string {
+    if (column.groupPath && column.groupPath.length > 0) {
+        return column.groupPath.slice(0, level).join('|');
+    }
+    return level === 1 ? (column.group ?? "") : "";
+}
+
+function isGroupCollapsedAtLevel(collapsed: string[], column: { group?: string; groupPath?: string[] }, level: number): boolean {
+    const groupKey = getGroupPathAtLevel(column, level);
+    return groupKey !== "" && collapsed.includes(groupKey);
+}
+
 type Props = Pick<
     DataEditorProps,
     "columns" | "onGroupHeaderClicked" | "onGridSelectionChange" | "getGroupDetails" | "gridSelection" | "freezeColumns"
@@ -12,7 +42,7 @@ type Result = Pick<
 >;
 
 export function useCollapsingGroups(props: Props): Result {
-    const [collapsed, setCollapsed] = React.useState<readonly string[]>([]);
+    const [collapsed, setCollapsed] = React.useState<string[]>([]);
     const [gridSelectionInner, setGridSelectionsInner] = React.useState<GridSelection | undefined>(undefined);
 
     const {
@@ -30,13 +60,23 @@ export function useCollapsingGroups(props: Props): Result {
     const spans = React.useMemo(() => {
         const result: [number, number][] = [];
         let current: [number, number] = [-1, -1];
-        let lastGroup: string | undefined;
+        let lastGroupKey: string | undefined;
+        
         for (let i = freezeColumns; i < columnsIn.length; i++) {
             const c = columnsIn[i];
-            const group = c.group ?? "";
-            const isCollapsed = collapsed.includes(group);
+            const groupKey = getGroupKey(c);
+            const maxLevel = getGroupLevel(c);
+            
+            // Check if any level of this column's group path is collapsed
+            let isCollapsed = false;
+            for (let level = 1; level <= maxLevel; level++) {
+                if (isGroupCollapsedAtLevel(collapsed, c, level)) {
+                    isCollapsed = true;
+                    break;
+                }
+            }
 
-            if (lastGroup !== group && current[0] !== -1) {
+            if (lastGroupKey !== groupKey && current[0] !== -1) {
                 result.push(current);
                 current = [-1, -1];
             }
@@ -49,7 +89,7 @@ export function useCollapsingGroups(props: Props): Result {
                 result.push(current);
                 current = [-1, -1];
             }
-            lastGroup = group;
+            lastGroupKey = groupKey;
         }
         if (current[0] !== -1) result.push(current);
         return result;
@@ -80,10 +120,14 @@ export function useCollapsingGroups(props: Props): Result {
         (index, a) => {
             onGroupHeaderClickedIn?.(index, a);
 
-            const group = columns[index]?.group ?? "";
-            if (group === "") return;
+            const column = columns[index];
+            // if (!column) return;
+            
+            const groupKey = getGroupKey(column);
+            if (groupKey === "") return;
+            
             a.preventDefault();
-            setCollapsed(cv => (cv.includes(group) ? cv.filter(x => x !== group) : [...cv, group]));
+            setCollapsed(cv => (cv.includes(groupKey) ? cv.filter(x => x !== groupKey) : [...cv, groupKey]));
         },
         [columns, onGroupHeaderClickedIn]
     );
@@ -93,12 +137,22 @@ export function useCollapsingGroups(props: Props): Result {
             if (s.current !== undefined) {
                 const col = s.current.cell[0];
                 const column = columns[col];
+                // if (column) {
+                    // const groupKey = getGroupKey(column);
+                const maxLevel = getGroupLevel(column);
+                
                 setCollapsed(cv => {
-                    if (cv.includes(column?.group ?? "")) {
-                        return cv.filter(g => g !== column.group);
+                    // Remove any collapsed group that contains this column
+                    let newCollapsed = cv;
+                    for (let level = 1; level <= maxLevel; level++) {
+                        const levelGroupKey = getGroupPathAtLevel(column, level);
+                        if (levelGroupKey !== "" && cv.includes(levelGroupKey)) {
+                            newCollapsed = newCollapsed.filter(g => g !== levelGroupKey);
+                        }
                     }
-                    return cv;
+                    return newCollapsed;
                 });
+                // }
             }
             if (onGridSelectionChangeIn !== undefined) {
                 onGridSelectionChangeIn(s);
@@ -113,10 +167,14 @@ export function useCollapsingGroups(props: Props): Result {
         group => {
             const result = getGroupDetailsIn?.(group);
 
+            // For backward compatibility, check both the original group string and as a group key
+            const isCollapsed = collapsed.includes(group ?? "") || 
+                               collapsed.some(c => c.endsWith('|' + group) || c === group);
+
             return {
                 ...result,
                 name: group,
-                overrideTheme: collapsed.includes(group ?? "")
+                overrideTheme: isCollapsed
                     ? {
                           bgHeader: theme.bgHeaderHasFocus,
                       }
