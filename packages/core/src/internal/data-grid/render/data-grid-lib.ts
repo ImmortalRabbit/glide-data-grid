@@ -28,6 +28,7 @@ export function useMappedColumns(
             columns.map(
                 (c, i): MappedGridColumn => ({
                     group: c.group,
+                    groupPath: c.groupPath,
                     grow: c.grow,
                     hasMenu: c.hasMenu,
                     icon: c.icon,
@@ -70,6 +71,65 @@ export function gridSelectionHasItem(sel: GridSelection, item: Item): boolean {
 
 export function isGroupEqual(left: string | undefined, right: string | undefined): boolean {
     return (left ?? "") === (right ?? "");
+}
+
+/**
+ * Gets the effective group path for a column, handling backward compatibility
+ * with the legacy group property.
+ */
+export function getEffectiveGroupPath(column: MappedGridColumn): readonly string[] {
+    if (column.groupPath !== undefined && column.groupPath.length > 0) {
+        return column.groupPath;
+    }
+    if (column.group !== undefined && column.group !== "") {
+        return [column.group];
+    }
+    return [];
+}
+
+/**
+ * Gets the maximum group depth across all columns.
+ */
+export function getMaxGroupDepth(columns: readonly MappedGridColumn[]): number {
+    let maxDepth = 0;
+    for (const col of columns) {
+        const path = getEffectiveGroupPath(col);
+        maxDepth = Math.max(maxDepth, path.length);
+    }
+    return maxDepth;
+}
+
+/**
+ * Checks if any columns use multi-level grouping (groupPath).
+ */
+export function hasMultiLevelGroups(columns: readonly MappedGridColumn[]): boolean {
+    for (const col of columns) {
+        if (col.groupPath !== undefined && col.groupPath.length > 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if two group paths are equal up to a specific level (inclusive).
+ */
+export function areGroupPathsEqualUpToLevel(
+    left: readonly string[] | undefined,
+    right: readonly string[] | undefined,
+    level: number
+): boolean {
+    const leftPath = left ?? [];
+    const rightPath = right ?? [];
+    
+    for (let i = 0; i <= level; i++) {
+        const leftValue = i < leftPath.length ? leftPath[i] : "";
+        const rightValue = i < rightPath.length ? rightPath[i] : "";
+        if (leftValue !== rightValue) {
+            return false;
+        }
+    }
+    return true;
 }
 
 export function cellIsSelected(location: Item, cell: InnerGridCell, selection: GridSelection): boolean {

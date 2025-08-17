@@ -50,7 +50,7 @@ export interface GroupDetails {
     }[];
 }
 
-export type GroupDetailsCallback = (groupName: string) => GroupDetails;
+export type GroupDetailsCallback = (groupName: string, level?: number) => GroupDetails;
 export type GetRowThemeCallback = (row: number) => Partial<Theme> | undefined;
 
 export interface Highlight {
