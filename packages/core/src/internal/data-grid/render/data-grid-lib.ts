@@ -68,8 +68,25 @@ export function gridSelectionHasItem(sel: GridSelection, item: Item): boolean {
     return false;
 }
 
-export function isGroupEqual(left: string | undefined, right: string | undefined): boolean {
-    return (left ?? "") === (right ?? "");
+function getColumnGroupKey(column: { group?: string; groupPath?: readonly string[] }): string {
+    if (column.groupPath && column.groupPath.length > 0) {
+        return column.groupPath.join('|');
+    }
+    return column.group ?? "";
+}
+
+export function isGroupEqual(left: string | undefined, right: string | undefined): boolean;
+export function isGroupEqual(left: { group?: string; groupPath?: readonly string[] } | undefined, right: { group?: string; groupPath?: readonly string[] } | undefined): boolean;
+export function isGroupEqual(left: any, right: any): boolean {
+    if (typeof left === "string" || left === undefined) {
+        // Backward compatibility: handle string group names
+        return (left ?? "") === (right ?? "");
+    }
+    
+    // Handle column objects with groupPath
+    const leftKey = left ? getColumnGroupKey(left) : "";
+    const rightKey = right ? getColumnGroupKey(right) : "";
+    return leftKey === rightKey;
 }
 
 export function cellIsSelected(location: Item, cell: InnerGridCell, selection: GridSelection): boolean {
@@ -812,7 +829,7 @@ export function computeBounds(
         const sticky = mappedColumns[col].sticky;
         while (
             start > 0 &&
-            isGroupEqual(mappedColumns[start - 1].group, group) &&
+            isGroupEqual(mappedColumns[start - 1], mappedColumns[col]) &&
             mappedColumns[start - 1].sticky === sticky
         ) {
             const c = mappedColumns[start - 1];
@@ -824,7 +841,7 @@ export function computeBounds(
         let end = col;
         while (
             end + 1 < mappedColumns.length &&
-            isGroupEqual(mappedColumns[end + 1].group, group) &&
+            isGroupEqual(mappedColumns[end + 1], mappedColumns[col]) &&
             mappedColumns[end + 1].sticky === sticky
         ) {
             const c = mappedColumns[end + 1];

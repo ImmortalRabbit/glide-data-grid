@@ -148,6 +148,7 @@ export type Item = readonly [col: number, row: number];
 export interface BaseGridColumn {
     readonly title: string;
     readonly group?: string;
+    readonly groupPath?: readonly string[];
     readonly icon?: GridColumnIcon | string;
     readonly overlayIcon?: GridColumnIcon | string;
     readonly menuIcon?: GridColumnMenuIcon | string;
