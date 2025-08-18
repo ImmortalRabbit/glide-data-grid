@@ -25,6 +25,17 @@ Lots of fun examples are in our [Storybook](https://glideapps.github.io/glide-da
 
 You can also visit our [main site](https://grid.glideapps.com).
 
+## 🚀 PR Preview Deployments
+
+Every pull request automatically gets a Storybook preview deployment powered by [Vercel](https://vercel.com). This allows you to:
+
+- **Preview changes instantly** - See your changes in action before merging
+- **Share with reviewers** - Easy access to live demos during code review  
+- **Test across devices** - Preview URLs work on any device or browser
+- **Catch visual regressions** - Spot UI issues early in the development process
+
+Preview deployments are automatically triggered when you open a PR that affects the component packages or Storybook configuration. Look for the preview URL comment that will be posted on your PR!
+
 ## Features
 
 -   **It scales to millions of rows**. Cells are rendered lazily on demand for memory efficiency.
