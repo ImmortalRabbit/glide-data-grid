@@ -50,7 +50,7 @@
         "canvas"
     ],
     "dependencies": {
-        "@glideapps/glide-data-grid": "6.0.4-alpha19",
+        "@glideapps/glide-data-grid": "6.0.4-alpha20",
         "@linaria/react": "^6.3.0",
         "@toast-ui/editor": "3.2.2",
         "@toast-ui/react-editor": "3.2.3",
